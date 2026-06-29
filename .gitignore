@@ -1,0 +1,13 @@
+.mirror_state.json
+local_files/
+__pycache__/
+*.pyc
+.env
+.env.local
+venv/
+.venv/
+node_modules/
+*.db
+data/
+.opencode/skills/*/LICENSE.txt
+.DS_Store

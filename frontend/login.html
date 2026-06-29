@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in · Quartz MCP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="login-card" id="login-form" autocomplete="off">
+      <div class="brand">
+        <div class="prism prism--lg" aria-hidden="true"></div>
+        <div>
+          <h1>Quartz MCP</h1>
+          <span>Admin console</span>
+        </div>
+      </div>
+
+      <div class="form-error" id="error"></div>
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" required autofocus />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required />
+      </div>
+
+      <button type="submit" class="btn btn--primary" id="submit">Sign in</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const errorBox = document.getElementById("error");
+    const submit = document.getElementById("submit");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorBox.classList.remove("show");
+      submit.disabled = true;
+      submit.textContent = "Signing in…";
+      try {
+        const res = await fetch("/admin/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+        if (res.ok) {
+          window.location.href = "/";
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        errorBox.textContent = data.detail || "Sign in failed. Please try again.";
+        errorBox.classList.add("show");
+      } catch {
+        errorBox.textContent = "Could not reach the server.";
+        errorBox.classList.add("show");
+      }
+      submit.disabled = false;
+      submit.textContent = "Sign in";
+    });
+  </script>
+</body>
+</html>

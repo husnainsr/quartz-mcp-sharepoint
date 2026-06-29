@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quartz SharePoint · Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="prism" aria-hidden="true"></div>
+      <h1>Quartz SharePoint</h1>
+    </div>
+    <div class="spacer"></div>
+    <span class="who" id="who"></span>
+    <button class="btn btn--ghost" id="logout">Sign out</button>
+  </header>
+
+  <main class="container">
+    <section class="status-card" id="status-card">
+      <span class="dot" aria-hidden="true"></span>
+      <div class="label">
+        <div class="state" id="status-state">Checking…</div>
+        <div class="sub" id="status-sub">Reading server state</div>
+      </div>
+      <button class="switch" id="server-switch" role="switch" aria-checked="false" aria-label="Toggle MCP server">
+        <span class="knob"></span>
+      </button>
+    </section>
+
+    <div class="section-head">
+      <h2>Connect a client</h2>
+    </div>
+    <section class="connect-card">
+      <div class="connect-row">
+        <div class="connect-field">
+          <label>MCP endpoint</label>
+          <div class="copy-inline">
+            <code id="mcp-url"></code>
+            <button class="btn btn--ghost" id="copy-url">Copy</button>
+          </div>
+        </div>
+        <div class="connect-field">
+          <label for="connect-token">API key</label>
+          <input type="text" id="connect-token" placeholder="Paste a key from below" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="connect-field connect-field--tool">
+          <label for="tool-select">Client</label>
+          <select id="tool-select">
+            <option value="claude">Claude Code</option>
+            <option value="opencode">opencode</option>
+            <option value="cursor">Cursor</option>
+            <option value="codex">Codex</option>
+            <option value="antigravity">Antigravity</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="config-block">
+        <div class="config-head">
+          <span class="config-path" id="config-path"></span>
+          <button class="btn btn--ghost" id="copy-config">Copy config</button>
+        </div>
+        <pre><code id="config-code"></code></pre>
+        <p class="config-hint" id="config-hint"></p>
+      </div>
+    </section>
+
+    <div class="section-head">
+      <h2>API keys</h2>
+      <span class="count" id="key-count"></span>
+    </div>
+
+    <div class="keys-toolbar">
+      <input type="text" id="new-label" placeholder="Label for a new key (e.g. "Project team")" />
+      <button class="btn btn--primary" id="create-key" style="width:auto;padding:10px 18px;">Generate key</button>
+    </div>
+
+    <div class="key-list" id="key-list"></div>
+  </main>
+
+  <div class="overlay" id="reveal">
+    <div class="modal">
+      <h3>Key generated</h3>
+      <p>Copy it now — for security it won't be shown again.</p>
+      <div class="token-reveal">
+        <code id="reveal-token"></code>
+        <button id="copy-token">Copy</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn--primary" id="reveal-done" style="width:auto;padding:9px 18px;">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
