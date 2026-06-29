@@ -51,7 +51,7 @@ MIRROR_DIR    = Path(os.environ.get("MIRROR_DIR", Path(__file__).parent / "local
 POLL_INTERVAL = int(os.environ.get("POLL_INTERVAL", "60"))
 OPENCODE_PATH = os.environ.get("OPENCODE_PATH", "opencode")
 OPENCODE_MODEL = os.environ.get("OPENCODE_MODEL", "opencode/big-pickle")
-OPENCODE_TIMEOUT = int(os.environ.get("OPENCODE_TIMEOUT", "120"))
+OPENCODE_TIMEOUT = int(os.environ.get("OPENCODE_TIMEOUT", "300"))
 
 _AUTH_TOKENS_RAW = os.environ.get("AUTH_TOKENS", "")
 _ALLOWED_HOSTS_RAW = os.environ.get("ALLOWED_HOSTS", "localhost:8001,localhost")
@@ -81,27 +81,48 @@ access to their SharePoint document library mirrored locally.
 
 The files are in the current working directory. Use Glob and Grep tools to locate files.
 Do NOT delegate, do NOT spawn sub-agents, do NOT run code.
+Do NOT copy, move, or write files anywhere — you are in read-only plan mode and have no write permissions.
+Do NOT use /tmp or any external directory. Read files directly from their original path in the current directory.
+Be fast — do not exhaustively scan everything. Search smart, read only what's needed, answer.
 
-Determine the intent of the query and respond accordingly:
+── STEP 1: EXTRACT KEYWORDS ────────────────────────────────────────────────────
+Break the query into 3-6 keywords and their likely variants. Think about:
+- synonyms and partial words (e.g. "manage" → manag*, manager, managing, management)
+- proper nouns (names, cities, project names) — try both exact and partial matches
+- document type hints (team, register, schedule, minutes, report, contact)
 
-- If the query is asking to FIND or LOCATE a file (e.g. "find the risk register", \
-"where is the change control template"), locate the file(s) and return the path(s) with \
-a one-sentence description of each.
+Example — query "find about Steve Dougthy in managing team in London":
+  keywords: Steve, Dougth*, manag*, team*, london*, director*, contact*
 
-- If the query is asking to READ, SUMMARISE, or answer questions ABOUT a file's contents \
-(e.g. "what's in this pdf", "summarise the minutes", "what does the risk register say"), \
-locate the file first, then read its full contents and provide a thorough answer.
+── STEP 2: SEARCH FILES ────────────────────────────────────────────────────────
+Use Grep with your keywords (case-insensitive) to find candidate files FAST.
+Run multiple targeted greps in parallel — one per keyword or keyword group.
+Do NOT glob the entire tree and read every file. Grep first, read later.
 
-For non-plain-text files, use the appropriate skill to read their contents:
-use the `docx` skill for .docx, the `xlsx` skill for .xlsx, the `pdf` skill for .pdf, \
-and the `pptx` skill for .pptx files.
+Example greps for the query above:
+  grep -ri "steve" . --include="*.docx" --include="*.xlsx" --include="*.pdf" -l
+  grep -ri "dougth" . -l
+  grep -ri "london" . --include="*.docx" --include="*.xlsx" -l
+  grep -ri "manag" . --include="*.docx" -l
 
-IMPORTANT — path formatting:
-- The current directory is an internal mirror folder, never mention it or expose it.
-- Strip any leading path segment that is exactly "local_files" from every path you return.
-- Example: if you find "local_files/Training - APC and Academy/file.docx", return it as \
-"Training - APC and Academy/file.docx".
-- Paths must always start from the SharePoint folder name, never from "local_files".
+── STEP 3: READ IMMEDIATELY, ANSWER FAST ───────────────────────────────────────
+CRITICAL RULE: As soon as you find even ONE file that looks relevant — READ IT NOW.
+Do NOT queue up more searches first. Do NOT wait to find more files before reading.
+Read the first promising file immediately. If it answers the query — STOP and respond.
+Only continue searching if the file clearly does not contain the answer.
+
+- FIND / LOCATE — return the file path(s) with a one-sentence description each.
+- READ / SUMMARISE / Q&A — read the file immediately and give a thorough answer.
+
+Always end your response with: "Source: <filename>" listing every file you read to produce the answer.
+
+For non-plain-text files, use the appropriate skill:
+  .docx → docx skill | .xlsx → xlsx skill | .pdf → pdf skill | .pptx → pptx skill
+
+── PATH FORMATTING ─────────────────────────────────────────────────────────────
+- Never mention or expose the mirror directory path.
+- Strip any leading "local_files" segment from every path you return.
+  e.g. "local_files/Training/file.docx" → "Training/file.docx"
 
 User query: {query}
 """
@@ -138,6 +159,27 @@ async def search_sharepoint(query: str) -> str:
     )
 
 
+_LOG_DIR = Path(__file__).parent / "logs"
+
+
+def _write_opencode_log(query: str, stdout: str, stderr: str) -> None:
+    try:
+        _LOG_DIR.mkdir(exist_ok=True)
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        slug = "".join(c if c.isalnum() else "_" for c in query[:50]).strip("_")
+        log_file = _LOG_DIR / f"{ts}_{slug}.txt"
+        with log_file.open("w", encoding="utf-8") as f:
+            f.write(f"Query: {query}\n")
+            f.write(f"Time:  {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("\n── STDOUT ──────────────────────────────────────────────────────────────\n")
+            f.write(stdout or "(empty)")
+            f.write("\n\n── STDERR ──────────────────────────────────────────────────────────────\n")
+            f.write(stderr or "(empty)")
+        log(f"[opencode] log saved → logs/{log_file.name}")
+    except Exception as e:
+        log(f"[opencode] failed to write log: {e}")
+
+
 def _run_search(query: str) -> str:
     if not MIRROR_DIR.exists() or not any(MIRROR_DIR.iterdir()):
         return (
@@ -156,8 +198,10 @@ def _run_search(query: str) -> str:
             timeout=OPENCODE_TIMEOUT,
         )
         output = result.stdout.strip()
-        if not output and result.stderr.strip():
-            output = result.stderr.strip()
+        stderr = result.stderr.strip()
+        _write_opencode_log(query, output, stderr)
+        if not output and stderr:
+            output = stderr
         return output or "opencode returned no output."
     except FileNotFoundError:
         return (
