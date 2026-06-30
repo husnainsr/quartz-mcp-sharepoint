@@ -44,18 +44,10 @@ The server starts on `http://0.0.0.0:8001` by default.
 | `SHAREPOINT_HOSTNAME` | ✓ | — | e.g. `yourorg.sharepoint.com` |
 | `SHAREPOINT_SITE_PATH` | ✓ | — | e.g. `/sites/YourSite` |
 | `SHAREPOINT_ROOT_PATH` | ✓ | — | Folder path within the site |
-| `MIRROR_DIR` | | `./local_files` | Where files are saved locally |
-| `POLL_INTERVAL` | | `60` | Seconds between delta polls |
-| `DOWNLOAD_WORKERS` | | `16` | Parallel workers for initial sync |
-| `OPENCODE_PATH` | | `opencode` | Path to the opencode binary |
-| `OPENCODE_MODEL` | | `opencode/big-pickle` | Model used for search queries |
-| `OPENCODE_TIMEOUT` | | `120` | Timeout (s) per search query |
-| `PORT` | | `8001` | HTTP server port |
-| `HOST` | | `0.0.0.0` | HTTP server host |
-| `AUTH_TOKENS` | | — | Bootstrap tokens: `label:token,...` |
-| `ADMIN_USERNAME` | | — | Admin panel username |
-| `ADMIN_PASSWORD` | | — | Admin panel password |
-| `ADMIN_JWT_SECRET` | | — | Secret for admin JWT signing |
+| `AUTH_TOKENS` | ✓ | — | Bootstrap tokens: `label:token,...` |
+| `ADMIN_USERNAME` | ✓ | — | Admin panel username |
+| `ADMIN_PASSWORD` | ✓ | — | Admin panel password |
+| `ADMIN_JWT_SECRET` | ✓ | — | Secret for admin JWT signing |
 
 ## Endpoints
 
