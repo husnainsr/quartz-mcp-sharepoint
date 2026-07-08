@@ -155,6 +155,7 @@ async function onDelete(k) {
 // ── Create key + reveal modal ─────────────────────────────────────────────────
 const reveal      = document.getElementById("reveal");
 const revealToken = document.getElementById("reveal-token");
+const revealConnector = document.getElementById("reveal-connector");
 const connectToken = document.getElementById("connect-token");
 
 document.getElementById("create-key").addEventListener("click", async () => {
@@ -163,6 +164,7 @@ document.getElementById("create-key").addEventListener("click", async () => {
     const key = await api.createKey(labelInput.value.trim());
     labelInput.value = "";
     revealToken.textContent = key.token;
+    revealConnector.textContent = `${MCP_URL}?token=${key.token}`;
     reveal.classList.add("show");
     connectToken.value = key.token;
     renderConfig();
@@ -175,6 +177,11 @@ document.getElementById("copy-token").addEventListener("click", async () => {
   catch { toast("Copy failed — select the text manually"); }
 });
 
+document.getElementById("copy-connector").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(revealConnector.textContent); toast("Connector URL copied"); }
+  catch { toast("Copy failed — select the text manually"); }
+});
+
 document.getElementById("reveal-done").addEventListener("click", () => reveal.classList.remove("show"));
 reveal.addEventListener("click", (e) => { if (e.target === reveal) reveal.classList.remove("show"); });
 
@@ -183,6 +190,11 @@ const MCP_URL = `${window.location.origin}/mcp`;
 const TOKEN_PLACEHOLDER = "<YOUR_API_KEY>";
 
 const CONFIGS = {
+  connector: {
+    path: "Claude.ai → Settings → Connectors → Add custom connector",
+    hint: "Paste the URL as the remote MCP server URL and leave the OAuth fields empty. One URL per person — the key is embedded in it, so don't share it.",
+    build: (url, token) => `${url}?token=${token}`,
+  },
   claude: {
     path: ".mcp.json (project) or ~/.claude.json (global)",
     hint: 'Or run: claude mcp add --transport http quartz-sharepoint <url> --header "Authorization: Bearer <key>"',

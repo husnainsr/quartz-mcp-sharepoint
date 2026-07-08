@@ -51,6 +51,7 @@
         <div class="connect-field connect-field--tool">
           <label for="tool-select">Client</label>
           <select id="tool-select">
+            <option value="connector">Claude Connector (claude.ai)</option>
             <option value="claude">Claude Code</option>
             <option value="opencode">opencode</option>
             <option value="cursor">Cursor</option>
@@ -90,6 +91,11 @@
       <div class="token-reveal">
         <code id="reveal-token"></code>
         <button id="copy-token">Copy</button>
+      </div>
+      <p class="reveal-sub">Claude connector URL — paste into Claude.ai → Settings → Connectors:</p>
+      <div class="token-reveal">
+        <code id="reveal-connector"></code>
+        <button id="copy-connector">Copy</button>
       </div>
       <div class="modal-actions">
         <button class="btn btn--primary" id="reveal-done" style="width:auto;padding:9px 18px;">Done</button>

@@ -581,6 +581,7 @@ input:focus-visible,
   flex: none;
 }
 .token-reveal button:hover { background: rgba(255,255,255,.2); }
+.modal .reveal-sub { margin: -6px 0 10px; }
 .modal .modal-actions { display: flex; justify-content: flex-end; }
 
 /* ── Toast ───────────────────────────────────────────────────────────────── */
