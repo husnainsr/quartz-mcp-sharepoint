@@ -54,7 +54,7 @@ function fmtDuration(ms) {
 }
 
 const PAGE = 25;
-const logList  = document.getElementById("log-list");
+const logBody  = document.getElementById("log-body");
 const logCount = document.getElementById("log-count");
 const loadMore = document.getElementById("load-more");
 let offset = 0;
@@ -78,11 +78,18 @@ function splitSources(text) {
   };
 }
 
-function renderLog(l) {
-  const card = document.createElement("div");
-  card.className = "log-card";
+function renderLogRows(l) {
   const ok = l.status === "ok";
   const { body, sources } = splitSources(l.response);
+
+  const tr = document.createElement("tr");
+  tr.className = "log-tr";
+  tr.innerHTML = `
+    <td class="cell-when">${fmtWhen(l.created_at)}</td>
+    <td><span class="tag ${ok ? "tag--active" : "tag--revoked"}">${escapeHtml(l.status)}</span></td>
+    <td class="cell-dur">${fmtDuration(l.duration_ms)}</td>
+    <td class="cell-clip cell-q" title="${escapeHtml(l.query)}">${escapeHtml(l.query)}</td>
+    <td class="cell-clip cell-a">${escapeHtml(body)}</td>`;
 
   const sourcesRow = sources.length
     ? `<div class="log-row">
@@ -91,50 +98,47 @@ function renderLog(l) {
        </div>`
     : "";
 
-  card.innerHTML = `
-    <div class="log-head">
-      <span class="tag ${ok ? "tag--active" : "tag--revoked"}">${escapeHtml(l.status)}</span>
-      <span class="log-when">${fmtWhen(l.created_at)}</span>
-      <span class="log-duration">${fmtDuration(l.duration_ms)}</span>
-    </div>
-    <div class="log-row">
-      <span class="log-key">Query</span>
-      <div class="log-query">${escapeHtml(l.query)}</div>
-    </div>
-    <div class="log-row">
-      <span class="log-key">Answer</span>
-      <div>
-        <div class="log-response is-collapsed">${mdLite(body)}</div>
-        <button class="log-toggle" type="button" hidden>Show more</button>
+  const detail = document.createElement("tr");
+  detail.className = "log-detail";
+  detail.hidden = true;
+  detail.innerHTML = `
+    <td colspan="5">
+      <div class="log-row">
+        <span class="log-key">Query</span>
+        <div class="log-query">${escapeHtml(l.query)}</div>
       </div>
-    </div>
-    ${sourcesRow}`;
+      <div class="log-row">
+        <span class="log-key">Answer</span>
+        <div class="log-response">${mdLite(body)}</div>
+      </div>
+      ${sourcesRow}
+    </td>`;
 
-  const resp = card.querySelector(".log-response");
-  const toggle = card.querySelector(".log-toggle");
-  toggle.addEventListener("click", () => {
-    const collapsed = resp.classList.toggle("is-collapsed");
-    toggle.textContent = collapsed ? "Show more" : "Show less";
+  tr.addEventListener("click", () => {
+    detail.hidden = !detail.hidden;
+    tr.classList.toggle("is-open", !detail.hidden);
   });
-  // Only offer expand when the answer is actually clamped.
-  requestAnimationFrame(() => {
-    if (resp.scrollHeight > resp.clientHeight + 2) toggle.hidden = false;
-  });
-  return card;
+  return [tr, detail];
 }
 
 async function loadLogs(reset) {
-  if (reset) { offset = 0; logList.innerHTML = ""; }
+  if (reset) { offset = 0; logBody.innerHTML = ""; }
   const { logs, total: t } = await api.logs(PAGE, offset);
   total = t;
   if (!logs.length && offset === 0) {
-    logList.innerHTML = `
-      <div class="empty">
-        <div class="prism" aria-hidden="true"></div>
-        <div>No queries logged yet. They'll appear here as clients use the search tool.</div>
-      </div>`;
+    logBody.innerHTML = `
+      <tr class="log-empty"><td colspan="5">
+        <div class="empty">
+          <div class="prism" aria-hidden="true"></div>
+          <div>No queries logged yet. They'll appear here as clients use the search tool.</div>
+        </div>
+      </td></tr>`;
   } else {
-    for (const l of logs) logList.appendChild(renderLog(l));
+    for (const l of logs) {
+      const [tr, detail] = renderLogRows(l);
+      logBody.appendChild(tr);
+      logBody.appendChild(detail);
+    }
   }
   offset += logs.length;
   logCount.textContent = total ? `${total} total` : "";

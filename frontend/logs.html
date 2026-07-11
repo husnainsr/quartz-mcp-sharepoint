@@ -30,7 +30,20 @@
       <button class="btn btn--danger" id="clear-logs">Clear all</button>
     </div>
 
-    <div class="log-list" id="log-list"></div>
+    <div class="table-wrap">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Query</th>
+            <th>Answer</th>
+          </tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
 
     <div class="log-more">
       <button class="btn btn--ghost" id="load-more" hidden>Load more</button>

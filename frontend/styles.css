@@ -586,27 +586,59 @@ input:focus-visible,
 .modal .modal-actions { display: flex; justify-content: flex-end; }
 
 /* ── Query logs ──────────────────────────────────────────────────────────── */
-.log-list { display: flex; flex-direction: column; gap: 10px; }
-.log-card {
+.table-wrap {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 14px 16px;
   box-shadow: var(--shadow);
+  overflow-x: auto;
 }
-.log-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 8px;
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
 }
-.log-when { font-size: 12.5px; color: var(--muted); }
-.log-duration {
+.log-table thead th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.log-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.log-table tr:last-child td { border-bottom: none; }
+.log-tr { cursor: pointer; transition: background .12s; }
+.log-tr:hover td { background: var(--paper); }
+.log-tr.is-open td { background: var(--quartz-soft); }
+.cell-when { white-space: nowrap; color: var(--muted); font-size: 12.5px; }
+.cell-dur {
   font-family: var(--mono);
   font-size: 12px;
   color: var(--muted-2);
-  margin-left: auto;
+  white-space: nowrap;
 }
+.cell-clip {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cell-q { width: 32%; font-weight: 600; }
+.cell-a { width: 40%; color: var(--muted); }
+.log-detail td {
+  padding: 4px 16px 12px;
+  background: var(--paper);
+}
+.log-detail .log-row:first-child { border-top: none; }
+.log-empty td { padding: 0; }
 .log-row {
   display: grid;
   grid-template-columns: 68px 1fr;
@@ -640,12 +672,6 @@ input:focus-visible,
   padding: 1px 5px;
   border-radius: 5px;
 }
-.log-response.is-collapsed {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 .log-sources {
   display: flex;
   flex-wrap: wrap;
@@ -660,14 +686,6 @@ input:focus-visible,
   padding: 3px 9px;
   border-radius: 999px;
   word-break: break-all;
-}
-.log-toggle {
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--quartz-a);
-  background: none;
-  padding: 0;
 }
 .log-more { display: flex; justify-content: center; margin-top: 16px; }
 
