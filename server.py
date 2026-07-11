@@ -247,11 +247,22 @@ def _write_opencode_log(query: str, stdout: str, stderr: str) -> None:
 
 
 def _run_search(query: str) -> str:
+    started = time.monotonic()
+    text, status = _do_search(query)
+    duration_ms = int((time.monotonic() - started) * 1000)
+    try:
+        db.log_query(query, text, status, duration_ms)
+    except Exception as e:
+        log(f"[opencode] failed to log query to db: {e}")
+    return text
+
+
+def _do_search(query: str) -> tuple[str, str]:
     if not MIRROR_DIR.exists() or not any(MIRROR_DIR.iterdir()):
         return (
             "The local SharePoint mirror is empty or not yet downloaded. "
             "Wait for the initial sync to complete and try again."
-        )
+        ), "no-mirror"
 
     prompt = _SEARCH_PROMPT.format(query=query)
 
@@ -271,16 +282,18 @@ def _run_search(query: str) -> str:
         marker = "FINAL_ANSWER:"
         if marker in output:
             output = output.split(marker, 1)[1].strip()
-        return output or "opencode returned no output."
+        if output:
+            return output, "ok"
+        return "opencode returned no output.", "empty"
     except FileNotFoundError:
         return (
             f"opencode not found at '{OPENCODE_PATH}'. "
             "Install it or set OPENCODE_PATH in your .env."
-        )
+        ), "error"
     except subprocess.TimeoutExpired:
-        return f"Search timed out after {OPENCODE_TIMEOUT}s. Try a more specific query."
+        return f"Search timed out after {OPENCODE_TIMEOUT}s. Try a more specific query.", "timeout"
     except Exception as e:
-        return f"Search error: {e}"
+        return f"Search error: {e}", "error"
 
 
 # ── Mirror background thread ─────────────────────────────────────────────────────
@@ -362,8 +375,10 @@ _STATIC = {
     "/": "index.html",
     "/index.html": "index.html",
     "/login.html": "login.html",
+    "/logs.html": "logs.html",
     "/styles.css": "styles.css",
     "/app.js": "app.js",
+    "/logs.js": "logs.js",
 }
 
 

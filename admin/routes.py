@@ -109,6 +109,28 @@ def delete_key(key_id: int, quartz_admin: str | None = Cookie(default=None)):
     return {"ok": True}
 
 
+@router.get("/logs")
+def get_logs(
+    limit: int = 50,
+    offset: int = 0,
+    quartz_admin: str | None = Cookie(default=None),
+):
+    _require_admin(quartz_admin)
+    limit = max(1, min(limit, 200))
+    offset = max(0, offset)
+    return {
+        "logs": db.list_query_logs(limit, offset),
+        "total": db.count_query_logs(),
+    }
+
+
+@router.delete("/logs")
+def delete_logs(quartz_admin: str | None = Cookie(default=None)):
+    _require_admin(quartz_admin)
+    db.clear_query_logs()
+    return {"ok": True}
+
+
 @router.get("/server")
 def get_server(quartz_admin: str | None = Cookie(default=None)):
     _require_admin(quartz_admin)

@@ -40,6 +40,18 @@ def init_db() -> None:
         conn.execute(
             "INSERT OR IGNORE INTO settings (key, value) VALUES ('mcp_enabled', '1')"
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS query_logs (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at  TEXT    NOT NULL,
+                query       TEXT    NOT NULL,
+                response    TEXT    NOT NULL,
+                status      TEXT    NOT NULL DEFAULT 'ok',
+                duration_ms INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
 
 
 def _now() -> str:
@@ -100,6 +112,36 @@ def set_setting(key: str, value: str) -> None:
             "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
             (key, value),
         )
+
+
+def log_query(query: str, response: str, status: str, duration_ms: int) -> None:
+    with _connect() as conn:
+        conn.execute(
+            "INSERT INTO query_logs (created_at, query, response, status, duration_ms) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (_now(), query, response, status, duration_ms),
+        )
+
+
+def list_query_logs(limit: int = 50, offset: int = 0) -> list[dict]:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT id, created_at, query, response, status, duration_ms "
+            "FROM query_logs ORDER BY id DESC LIMIT ? OFFSET ?",
+            (limit, offset),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def count_query_logs() -> int:
+    with _connect() as conn:
+        row = conn.execute("SELECT COUNT(*) AS n FROM query_logs").fetchone()
+    return row["n"]
+
+
+def clear_query_logs() -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM query_logs")
 
 
 def is_mcp_enabled() -> bool:

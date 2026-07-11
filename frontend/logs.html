@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quartz SharePoint · Query logs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="prism" aria-hidden="true"></div>
+      <h1>Quartz SharePoint</h1>
+    </div>
+    <div class="spacer"></div>
+    <a class="btn btn--ghost" href="/">Dashboard</a>
+    <span class="who" id="who"></span>
+    <button class="btn btn--ghost" id="logout">Sign out</button>
+  </header>
+
+  <main class="container">
+    <div class="section-head">
+      <h2>Query logs</h2>
+      <span class="count" id="log-count"></span>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn btn--ghost" id="refresh-logs">Refresh</button>
+      <button class="btn btn--danger" id="clear-logs">Clear all</button>
+    </div>
+
+    <div class="log-list" id="log-list"></div>
+
+    <div class="log-more">
+      <button class="btn btn--ghost" id="load-more" hidden>Load more</button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/logs.js"></script>
+</body>
+</html>

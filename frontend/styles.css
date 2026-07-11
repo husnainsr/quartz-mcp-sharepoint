@@ -163,6 +163,7 @@ input:focus-visible,
   padding: 11px 16px;
   border-radius: var(--radius-sm);
   transition: transform .08s, filter .15s, background .15s, border-color .15s;
+  text-decoration: none;
 }
 .btn:active { transform: translateY(1px); }
 .btn--primary {
@@ -583,6 +584,58 @@ input:focus-visible,
 .token-reveal button:hover { background: rgba(255,255,255,.2); }
 .modal .reveal-sub { margin: -6px 0 10px; }
 .modal .modal-actions { display: flex; justify-content: flex-end; }
+
+/* ── Query logs ──────────────────────────────────────────────────────────── */
+.log-list { display: flex; flex-direction: column; gap: 10px; }
+.log-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.log-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.log-when { font-size: 12.5px; color: var(--muted); }
+.log-duration {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted-2);
+  margin-left: auto;
+}
+.log-query {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+.log-response {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.log-response.is-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.log-toggle {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--quartz-a);
+  background: none;
+  padding: 0;
+}
+.log-more { display: flex; justify-content: center; margin-top: 16px; }
 
 /* ── Toast ───────────────────────────────────────────────────────────────── */
 .toast {
