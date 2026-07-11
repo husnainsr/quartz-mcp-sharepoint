@@ -60,25 +60,65 @@ const loadMore = document.getElementById("load-more");
 let offset = 0;
 let total = 0;
 
+/* Minimal markdown: bold, inline code, line breaks. Input is escaped first. */
+function mdLite(s) {
+  let h = escapeHtml(s);
+  h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
+  return h.replace(/\n/g, "<br>");
+}
+
+/* Pull a trailing "Source: a, b, c" line out of the response body. */
+function splitSources(text) {
+  const m = text.match(/(?:^|\n)\s*Source:\s*([^\n]+)\s*$/i);
+  if (!m) return { body: text.trim(), sources: [] };
+  return {
+    body: text.slice(0, m.index).trim(),
+    sources: m[1].split(/,\s*/).map((s) => s.trim()).filter(Boolean),
+  };
+}
+
 function renderLog(l) {
   const card = document.createElement("div");
   card.className = "log-card";
   const ok = l.status === "ok";
+  const { body, sources } = splitSources(l.response);
+
+  const sourcesRow = sources.length
+    ? `<div class="log-row">
+         <span class="log-key">Sources</span>
+         <div class="log-sources">${sources.map((s) => `<span class="log-src">${escapeHtml(s)}</span>`).join("")}</div>
+       </div>`
+    : "";
+
   card.innerHTML = `
     <div class="log-head">
       <span class="tag ${ok ? "tag--active" : "tag--revoked"}">${escapeHtml(l.status)}</span>
       <span class="log-when">${fmtWhen(l.created_at)}</span>
       <span class="log-duration">${fmtDuration(l.duration_ms)}</span>
     </div>
-    <div class="log-query">${escapeHtml(l.query)}</div>
-    <div class="log-response is-collapsed">${escapeHtml(l.response)}</div>
-    <button class="log-toggle" type="button">Show full response</button>`;
+    <div class="log-row">
+      <span class="log-key">Query</span>
+      <div class="log-query">${escapeHtml(l.query)}</div>
+    </div>
+    <div class="log-row">
+      <span class="log-key">Answer</span>
+      <div>
+        <div class="log-response is-collapsed">${mdLite(body)}</div>
+        <button class="log-toggle" type="button" hidden>Show more</button>
+      </div>
+    </div>
+    ${sourcesRow}`;
 
   const resp = card.querySelector(".log-response");
   const toggle = card.querySelector(".log-toggle");
   toggle.addEventListener("click", () => {
     const collapsed = resp.classList.toggle("is-collapsed");
-    toggle.textContent = collapsed ? "Show full response" : "Collapse";
+    toggle.textContent = collapsed ? "Show more" : "Show less";
+  });
+  // Only offer expand when the answer is actually clamped.
+  requestAnimationFrame(() => {
+    if (resp.scrollHeight > resp.clientHeight + 2) toggle.hidden = false;
   });
   return card;
 }
